@@ -105,4 +105,9 @@ class MainActivity : AppCompatActivity() {
         }
 
     }
+
+    override fun onBackPressed() {
+        if (ivHelper.handleBackPressed()) return
+        super.onBackPressed()
+    }
 }

@@ -26,7 +26,7 @@ class PhotoViewContainer @JvmOverloads constructor(
 
     private val cb: ViewDragHelper.Callback = object : ViewDragHelper.Callback() {
         override fun tryCaptureView(view: View, i: Int): Boolean {
-            return !isReleasing
+            return !isAnimating
         }
 
         override fun getViewVerticalDragRange(child: View): Int {
@@ -77,7 +77,8 @@ class PhotoViewContainer @JvmOverloads constructor(
     private val hideTopThreshold = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 80f, resources.displayMetrics)
     private var maxOffset = 0
     var dragChangeListener: OnDragChangeListener? = null
-    var isReleasing = false
+    /**该参数表示是否正在被拖拽或是否正处于拖拽返回的动画之中*/
+    var isAnimating = false
     private var isVertical = false
     private var touchX = 0f
     private  var touchY = 0f
@@ -150,6 +151,6 @@ class PhotoViewContainer @JvmOverloads constructor(
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
-        isReleasing = false
+        isAnimating = false
     }
 }

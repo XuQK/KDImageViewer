@@ -55,10 +55,16 @@ class DragPhotoViewHelper(
     private var argbEvaluator: ArgbEvaluator = ArgbEvaluator()
 
     /**当前展示状态*/
-    private var showing: Boolean = false
+    var showing: Boolean = false
+        private set
 
     var currentPosition = 0
     var srcView: ImageView? = null
+        set(value) {
+            if (!showing) {
+                field = value
+            }
+        }
 
     var pageChangeListener: SimpleOnPageChangeListener? = null
 
@@ -103,9 +109,9 @@ class DragPhotoViewHelper(
     }
 
     fun show() {
-        if (photoViewContainer.isReleasing) return
+        if (photoViewContainer.isAnimating) return
         showing = true
-        photoViewContainer.isReleasing = true
+        photoViewContainer.isAnimating = true
 
         // 将snapshotView设置成列表中的srcView的样子
         updateSrcViewParams()
@@ -143,7 +149,7 @@ class DragPhotoViewHelper(
                     .setInterpolator(FastOutSlowInInterpolator())
                     .addListener(object : TransitionListenerAdapter() {
                         override fun onTransitionEnd(transition: Transition) {
-                            photoViewContainer.isReleasing = false
+                            photoViewContainer.isAnimating = false
 
                             pager.visibility = View.VISIBLE
                             snapshotView.visibility = View.INVISIBLE
@@ -174,9 +180,8 @@ class DragPhotoViewHelper(
     }
 
     private fun dismiss() {
-        if (photoViewContainer.isReleasing) return
-        showing = false
-        photoViewContainer.isReleasing = true
+        if (photoViewContainer.isAnimating) return
+        photoViewContainer.isAnimating = true
 
         updateSrcViewParams()
 
@@ -206,7 +211,7 @@ class DragPhotoViewHelper(
                 .setInterpolator(FastOutSlowInInterpolator())
                 .addListener(object : TransitionListenerAdapter() {
                     override fun onTransitionEnd(transition: Transition) {
-                        photoViewContainer.isReleasing = false
+                        photoViewContainer.isAnimating = false
                         (rootView.parent as? ViewGroup)?.removeView(rootView)
                         pager.visibility = View.INVISIBLE
                         snapshotView.visibility = View.VISIBLE
@@ -217,6 +222,7 @@ class DragPhotoViewHelper(
 
                         onAnimateListener?.onDismissAnimateEnd()
                         reset()
+                        showing = false
                     }
                 })
         )
@@ -235,6 +241,16 @@ class DragPhotoViewHelper(
 
         animateShadowBg(Color.TRANSPARENT)
         coverView?.animate()?.alpha(0f)?.setDuration(animDuration)?.start()
+    }
+
+    fun handleBackPressed(): Boolean {
+        if (photoViewContainer.isAnimating) return true
+
+        if (showing) {
+            dismiss()
+            return true
+        }
+        return false
     }
 
     private fun animateShadowBg(endColor: Int) {
