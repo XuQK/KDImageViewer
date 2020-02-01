@@ -53,7 +53,7 @@ class MainActivity : AppCompatActivity() {
             .override(Target.SIZE_ORIGINAL)
             .into(iv0)
         iv0.setOnClickListener {
-            ivHelper.setImageData(originList, list, iv0, 0).show()
+            ivHelper.show(originList, list, iv0, 0)
         }
 
         Glide.with(iv1)
@@ -61,7 +61,7 @@ class MainActivity : AppCompatActivity() {
             .override(Target.SIZE_ORIGINAL)
             .into(iv1)
         iv1.setOnClickListener {
-            ivHelper.setImageData(originList, list, iv1,  1).show()
+            ivHelper.show(originList, list, iv1,  1)
         }
 
         Glide.with(iv2)
@@ -69,7 +69,7 @@ class MainActivity : AppCompatActivity() {
             .override(Target.SIZE_ORIGINAL)
             .into(iv2)
         iv2.setOnClickListener {
-            ivHelper.setImageData(originList, list, iv2, 2).show()
+            ivHelper.show(originList, list, iv2, 2)
         }
 
         Glide.with(iv3)
@@ -77,7 +77,7 @@ class MainActivity : AppCompatActivity() {
             .override(Target.SIZE_ORIGINAL)
             .into(iv3)
         iv3.setOnClickListener {
-            ivHelper.setImageData(originList, list, iv3, 3).show()
+            ivHelper.show(originList, list, iv3, 3)
         }
 
         Glide.with(iv4)
@@ -85,7 +85,7 @@ class MainActivity : AppCompatActivity() {
             .override(Target.SIZE_ORIGINAL)
             .into(iv4)
         iv4.setOnClickListener {
-            ivHelper.setImageData(originList, list, iv4, 4).show()
+            ivHelper.show(originList, list, iv4, 4)
         }
 
         Glide.with(iv5)
@@ -93,7 +93,7 @@ class MainActivity : AppCompatActivity() {
             .override(Target.SIZE_ORIGINAL)
             .into(iv5)
         iv5.setOnClickListener {
-            ivHelper.setImageData(originList, list, iv5, 5).show()
+            ivHelper.show(originList, list, iv5, 5)
         }
 
         Glide.with(iv6)
@@ -101,7 +101,7 @@ class MainActivity : AppCompatActivity() {
             .override(Target.SIZE_ORIGINAL)
             .into(iv6)
         iv6.setOnClickListener {
-            ivHelper.setImageData(originList, list, iv6, 6).show()
+            ivHelper.show(originList, list, iv6, 6)
         }
 
     }

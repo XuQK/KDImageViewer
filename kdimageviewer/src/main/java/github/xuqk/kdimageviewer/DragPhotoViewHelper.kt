@@ -93,7 +93,10 @@ class DragPhotoViewHelper(
         }
     }
 
-    fun setImageData(originUrlList: List<String?>, thumbUrlList: List<String?>, srcView: ImageView, position: Int): DragPhotoViewHelper {
+    fun show(originUrlList: List<String?>, thumbUrlList: List<String?>, srcView: ImageView, position: Int) {
+        if (photoViewContainer.isAnimating) return
+        showing = true
+
         this.originUrlList.clear()
         this.originUrlList.addAll(originUrlList)
         this.thumbUrlList.clear()
@@ -105,12 +108,7 @@ class DragPhotoViewHelper(
         pager.currentItem = position
 
         this.srcView = srcView
-        return this
-    }
 
-    fun show() {
-        if (photoViewContainer.isAnimating) return
-        showing = true
         photoViewContainer.isAnimating = true
 
         // 将snapshotView设置成列表中的srcView的样子
