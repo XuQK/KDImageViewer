@@ -59,7 +59,7 @@ class DragPhotoViewHelper(
     var currentPosition = 0
     var srcView: ImageView? = null
         set(value) {
-            if (!showing) {
+            if (showing) {
                 field = value
             }
         }
