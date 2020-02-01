@@ -36,9 +36,7 @@ class DragPhotoViewHelper(
     private val imageLoader: ImageLoader,
     private val animDuration: Long = 300L,
     @ColorInt private val defaultBgColor: Int = Color.BLACK,
-    private var coverModule: DefaultCoverModule = DefaultCoverModule(
-        activity
-    ),
+    val coverModule: DefaultCoverModule = DefaultCoverModule(activity),
     var onAnimateListener: OnAnimateListener? = null
 ) : OnDragChangeListener {
 
@@ -90,7 +88,9 @@ class DragPhotoViewHelper(
         photoViewContainer.dragChangeListener = this
 
         rootView.addView(photoViewContainer)
-        rootView.addView(coverModule.getCoverView())
+        coverModule.getCoverView()?.let {
+            rootView.addView(it)
+        }
     }
 
     fun setImageData(originUrlList: List<String?>, thumbUrlList: List<String?>, srcView: ImageView, position: Int): DragPhotoViewHelper {
