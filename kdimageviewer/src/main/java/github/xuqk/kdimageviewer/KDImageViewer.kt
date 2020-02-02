@@ -306,6 +306,8 @@ class KDImageViewer(
     inner class ImageViewerAdapter : RecyclerView.Adapter<ImageViewerAdapter.ImageViewerViewHolder>() {
         private var recyclerView: RecyclerView? = null
 
+        private val onClickListener = View.OnClickListener { dismiss() }
+
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewerViewHolder {
             val view = FrameLayout(activity)
             view.layoutParams = generateDefaultLayoutParams()
@@ -318,6 +320,8 @@ class KDImageViewer(
             view.addView(photoView, generateDefaultLayoutParams())
             view.addView(loadingView, generateDefaultLayoutParams())
             view.addView(loadFailedView, generateDefaultLayoutParams())
+
+            photoView.setOnClickListener(onClickListener)
 
             return ImageViewerViewHolder(view, photoView, loadingView, loadFailedView)
         }
