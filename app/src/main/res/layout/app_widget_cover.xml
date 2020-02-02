@@ -23,4 +23,14 @@
         android:text="点击"
         android:layout_gravity="bottom|end"/>
 
+    <TextView
+        android:id="@+id/tv_index"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center|bottom"
+        android:layout_marginBottom="36dp"
+        android:text="1/1"
+        android:textColor="#ffffff"
+        android:textSize="26sp"/>
+
 </FrameLayout>

@@ -5,7 +5,8 @@ import android.animation.ValueAnimator
 import android.graphics.Color
 import android.graphics.Matrix
 import android.graphics.RectF
-import android.graphics.drawable.*
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.LinearInterpolator
@@ -14,9 +15,9 @@ import android.widget.ImageView
 import androidx.annotation.ColorInt
 import androidx.appcompat.app.AppCompatActivity
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
+import androidx.recyclerview.widget.RecyclerView
 import androidx.transition.*
-import androidx.viewpager.widget.PagerAdapter
-import androidx.viewpager.widget.ViewPager.SimpleOnPageChangeListener
+import androidx.viewpager2.widget.ViewPager2
 import github.xuqk.kdimageviewer.photoview.PhotoView
 
 /**
@@ -36,19 +37,16 @@ class DragPhotoViewHelper(
     private val imageLoader: ImageLoader,
     private val animDuration: Long = 300L,
     @ColorInt private val defaultBgColor: Int = Color.BLACK,
-    val coverModule: DefaultCoverModule = DefaultCoverModule(activity),
+    val coverModule: KDCoverModule = KDCoverModule(activity),
     var onAnimateListener: OnAnimateListener? = null
 ) : OnDragChangeListener {
 
     private val rootView: ViewGroup = FrameLayout(activity)
     private val photoViewContainer = PhotoViewContainer(activity)
-    private val pager = HackyViewPager(activity)
+    private val pager = ViewPager2(activity)
     private val snapshotView = PhotoView(activity)
 
-    private var coverView: View? = null
-
     private val originUrlList = mutableListOf<String?>()
-    private val thumbUrlList = mutableListOf<String?>()
 
     private var argbEvaluator: ArgbEvaluator = ArgbEvaluator()
 
@@ -56,71 +54,64 @@ class DragPhotoViewHelper(
     var showing: Boolean = false
         private set
 
-    var currentPosition = 0
-        private set
-//    var srcView: ImageView? = null
-//        set(value) {
-//            if (showing) {
-//                field = value
-//            }
-//        }
+    var pageChangeCallback: ViewPager2.OnPageChangeCallback? = null
+        set(value) {
+            if (field != value && value != null) {
+                if (field != null) {
+                    pager.unregisterOnPageChangeCallback(field!!)
+                }
+                pager.registerOnPageChangeCallback(value)
 
-    var pageChangeListener: SimpleOnPageChangeListener? = null
+                field = value
+            }
+        }
 
     var srcImageViewFetcher: SrcImageViewFetcher = SrcImageViewFetcher()
 
     init {
-        photoViewContainer.addView(pager)
-        pager.addOnPageChangeListener(object : SimpleOnPageChangeListener() {
-            override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
-                pageChangeListener?.onPageScrolled(position, positionOffset, positionOffsetPixels)
-            }
+        photoViewContainer.addView(pager, generateDefaultLayoutParams())
 
-            override fun onPageSelected(i: Int) {
-                currentPosition = i
-                pageChangeListener?.onPageSelected(i)
-            }
+        pager.run {
+            pager.offscreenPageLimit = 1
+//            pager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+//                override fun onPageSelected(position: Int) {
+//                    currentPosition = position
+//                }
+//            })
+            pager.adapter = ImageViewerAdapter()
+        }
 
-            override fun onPageScrollStateChanged(state: Int) {
-                pageChangeListener?.onPageScrollStateChanged(state)
-            }
-        })
-
-        photoViewContainer.addView(snapshotView)
+        photoViewContainer.addView(snapshotView, generateDefaultLayoutParams())
         photoViewContainer.viewPager = pager
         photoViewContainer.dragChangeListener = this
 
-        rootView.addView(photoViewContainer)
+        rootView.addView(photoViewContainer, generateDefaultLayoutParams())
         coverModule.getCoverView()?.let {
-            rootView.addView(it)
+            rootView.addView(it, generateDefaultLayoutParams())
         }
     }
 
-    fun show(originUrlList: List<String?>, thumbUrlList: List<String?>, position: Int) {
+    fun getCurrentPosition(): Int = pager.currentItem
+
+    fun show(originUrlList: List<String?>, position: Int) {
         if (photoViewContainer.isAnimating) return
         showing = true
 
         this.originUrlList.clear()
         this.originUrlList.addAll(originUrlList)
-        this.thumbUrlList.clear()
-        this.thumbUrlList.addAll(thumbUrlList)
+        pager.adapter!!.notifyDataSetChanged()
 
-        this.currentPosition = position
-
-        pager.adapter = PhotoViewAdapter()
-        pager.currentItem = position
-
-//        this.srcView = srcView
+        pager.setCurrentItem(position, false)
 
         photoViewContainer.isAnimating = true
 
         // 将snapshotView设置成列表中的srcView的样子
-        val srcView = srcImageViewFetcher.getSrcImageView(currentPosition)
+        val srcView = srcImageViewFetcher.getSrcImageView(getCurrentPosition())
         updateSrcViewParams(srcView)
 
         photoViewContainer.setBackgroundColor(Color.TRANSPARENT)
 
-        (activity.window.decorView as ViewGroup).addView(rootView)
+        (activity.window.decorView as ViewGroup).addView(rootView, generateDefaultLayoutParams())
         pager.visibility = View.INVISIBLE
 
         snapshotView.run {
@@ -177,7 +168,7 @@ class DragPhotoViewHelper(
             }
 
             animateShadowBg(defaultBgColor)
-            coverView?.animate()?.alpha(1f)?.setDuration(animDuration)?.start()
+            coverModule.getCoverView()?.animate()?.alpha(1f)?.setDuration(animDuration)?.start()
         }
     }
 
@@ -185,11 +176,11 @@ class DragPhotoViewHelper(
         if (photoViewContainer.isAnimating) return
         photoViewContainer.isAnimating = true
 
-        val srcView = srcImageViewFetcher.getSrcImageView(currentPosition)
+        val srcView = srcImageViewFetcher.getSrcImageView(getCurrentPosition())
         updateSrcViewParams(srcView)
 
         // 将snapshotView设置成当前pager中photoView的样子(matrix)
-        (pager.adapter as PhotoViewAdapter).primaryPhotoView?.let {
+        (pager.adapter as ImageViewerAdapter).getCurrentPhotoView(getCurrentPosition())?.let {
             snapshotView.run {
                 setImageDrawable(it.drawable)
 
@@ -243,7 +234,7 @@ class DragPhotoViewHelper(
         }
 
         animateShadowBg(Color.TRANSPARENT)
-        coverView?.animate()?.alpha(0f)?.setDuration(animDuration)?.start()
+        coverModule.getCoverView()?.animate()?.alpha(0f)?.setDuration(animDuration)?.start()
     }
 
     fun handleBackPressed(): Boolean {
@@ -282,8 +273,8 @@ class DragPhotoViewHelper(
             rect.set(
                 currentOriginViewLocation[0].toFloat(),
                 currentOriginViewLocation[1].toFloat(),
-                (currentOriginViewLocation[0] + srcView!!.width).toFloat(),
-                (currentOriginViewLocation[1] + srcView!!.height).toFloat()
+                (currentOriginViewLocation[0] + srcView.width).toFloat(),
+                (currentOriginViewLocation[1] + srcView.height).toFloat()
             )
         }
     }
@@ -293,7 +284,7 @@ class DragPhotoViewHelper(
     }
 
     override fun onDragChange(dy: Int, scale: Float, fraction: Float) {
-        coverView?.let {
+        coverModule.getCoverView()?.let {
             it.alpha = 1 - fraction
         }
 
@@ -308,78 +299,83 @@ class DragPhotoViewHelper(
 
     private fun reset() {
         snapshotView.setImageDrawable(null)
-        originUrlList.clear()
-        thumbUrlList.clear()
-        pager.adapter = null
     }
 
-    inner class PhotoViewAdapter : PagerAdapter() {
-        private lateinit var primaryItem: View
-        val primaryPhotoView: PhotoView?
-            get() = (primaryItem as ViewGroup).findViewWithTag("primaryPhotoView")
+    private fun generateDefaultLayoutParams() = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
 
-        override fun getCount(): Int {
-            return originUrlList.size
-        }
+    inner class ImageViewerAdapter : RecyclerView.Adapter<ImageViewerAdapter.ImageViewerViewHolder>() {
+        private var recyclerView: RecyclerView? = null
 
-        override fun isViewFromObject(view: View, o: Any) = o === view
-
-        override fun setPrimaryItem(container: ViewGroup, position: Int, `object`: Any) {
-            super.setPrimaryItem(container, position, `object`)
-            primaryItem = `object` as View
-        }
-
-        override fun instantiateItem(container: ViewGroup, position: Int): Any {
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewerViewHolder {
             val view = FrameLayout(activity)
+            view.layoutParams = generateDefaultLayoutParams()
+
             val photoView = PhotoView(activity)
             photoView.tag = "primaryPhotoView"
             val loadingView = coverModule.getLoadingView()
             val loadFailedView = coverModule.getLoadFailedView()
 
-            view.addView(photoView)
-            view.addView(loadingView, FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
-            view.addView(loadFailedView, FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
-            loadFailedView.setOnClickListener {
-                loadOriginImage(photoView, position, loadFailedView, loadingView)
+            view.addView(photoView, generateDefaultLayoutParams())
+            view.addView(loadingView, generateDefaultLayoutParams())
+            view.addView(loadFailedView, generateDefaultLayoutParams())
+
+            return ImageViewerViewHolder(view, photoView, loadingView, loadFailedView)
+        }
+
+        override fun getItemCount(): Int {
+            return originUrlList.size
+        }
+
+        override fun onBindViewHolder(holder: ImageViewerViewHolder, position: Int) {
+            holder.loadFailedView.setOnClickListener {
+                loadOriginImage(holder, position)
             }
 
             // 先加载已有缩略图
-            photoView.setImageDrawable(srcImageViewFetcher.getSrcImageView(position)?.drawable)
-//            imageLoader.load(photoView, thumbUrlList[position], null)
+            holder.photoView.setImageDrawable(srcImageViewFetcher.getSrcImageView(position)?.drawable)
 
             // 再加载原图
-            loadOriginImage(photoView, position, loadFailedView, loadingView)
-
-            container.addView(view)
-            photoView.setOnClickListener {
-                dismiss()
-            }
-            return view
+            loadOriginImage(holder, position)
         }
 
-        override fun destroyItem(container: ViewGroup, position: Int, `object`: Any) {
-            container.removeView(`object` as View)
-        }
-
-        private fun loadOriginImage(photoView: PhotoView, position: Int, loadFailedView: View, loadingView: View) {
+        private fun loadOriginImage(holder: ImageViewerViewHolder, position: Int) {
             if (!showing) return
 
-            loadFailedView.visibility = View.GONE
-            loadingView.visibility = View.VISIBLE
+            holder.loadFailedView.visibility = View.GONE
+            holder.loadingView.visibility = View.VISIBLE
 
-            imageLoader.load(photoView, originUrlList[position], object :
+            imageLoader.load(holder.photoView, originUrlList[position], object :
                 ImageLoader.ImageLoaderListener {
                 override fun onLoadFailed(errorDrawable: Drawable?) {
-                    loadingView.visibility = View.INVISIBLE
-                    loadFailedView.visibility = View.VISIBLE
+                    holder.loadingView.visibility = View.INVISIBLE
+                    holder.loadFailedView.visibility = View.VISIBLE
                 }
 
                 override fun onLoadSuccess(drawable: Drawable?) {
-                    loadingView.visibility = View.INVISIBLE
-                    loadFailedView.visibility = View.INVISIBLE
+                    holder.loadingView.visibility = View.INVISIBLE
+                    holder.loadFailedView.visibility = View.INVISIBLE
                 }
             })
         }
+
+        override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+            this.recyclerView = recyclerView
+        }
+
+        override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
+            this.recyclerView = null
+        }
+
+        fun getCurrentPhotoView(position: Int): PhotoView? {
+            return (recyclerView?.findViewHolderForLayoutPosition(position) as? ImageViewerViewHolder)?.photoView
+        }
+
+        inner class ImageViewerViewHolder(
+            itemView: View,
+            val photoView: PhotoView,
+            val loadingView: View,
+            val loadFailedView: View
+        ) : RecyclerView.ViewHolder(itemView)
     }
 
     /**

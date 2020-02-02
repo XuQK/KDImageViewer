@@ -10,7 +10,8 @@ import android.view.View
 import android.widget.FrameLayout
 import androidx.core.view.ViewCompat
 import androidx.customview.widget.ViewDragHelper
-import androidx.viewpager.widget.ViewPager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager2.widget.ViewPager2
 import github.xuqk.kdimageviewer.photoview.PhotoView
 import kotlin.math.abs
 import kotlin.math.min
@@ -42,7 +43,7 @@ class PhotoViewContainer @JvmOverloads constructor(
             }
         }
 
-        override fun onViewPositionChanged(changedView: View,left: Int,top: Int, dx: Int, dy: Int) {
+        override fun onViewPositionChanged(changedView: View, left: Int, top: Int, dx: Int, dy: Int) {
             super.onViewPositionChanged(changedView, left, top, dx, dy)
             if (changedView != viewPager) {
                 viewPager!!.offsetTopAndBottom(dy)
@@ -73,7 +74,7 @@ class PhotoViewContainer @JvmOverloads constructor(
     }
 
     private val dragHelper: ViewDragHelper = ViewDragHelper.create(this, cb)
-    var viewPager: ViewPager? = null
+    var viewPager: ViewPager2? = null
     private val hideTopThreshold = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 80f, resources.displayMetrics)
     private var maxOffset = 0
     var dragChangeListener: OnDragChangeListener? = null
@@ -121,7 +122,7 @@ class PhotoViewContainer @JvmOverloads constructor(
     }
 
     private fun getCurrentPhotoView(): PhotoView? {
-        return viewPager?.getChildAt(viewPager!!.currentItem) as? PhotoView
+        return ((viewPager?.getChildAt(0) as? RecyclerView)?.adapter as? DragPhotoViewHelper.ImageViewerAdapter)?.getCurrentPhotoView(viewPager!!.currentItem)
     }
 
     override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {

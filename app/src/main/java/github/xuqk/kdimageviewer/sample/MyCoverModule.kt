@@ -6,7 +6,7 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.TextView
-import github.xuqk.kdimageviewer.DefaultCoverModule
+import github.xuqk.kdimageviewer.KDCoverModule
 
 /**
  * Created By：XuQK
@@ -15,7 +15,7 @@ import github.xuqk.kdimageviewer.DefaultCoverModule
  * Description：
  */
 
-class MyCoverModule(private val activity: Activity): DefaultCoverModule(activity) {
+class MyCoverModule(private val activity: Activity): KDCoverModule(activity) {
 
     private var coverView: View? = null
 

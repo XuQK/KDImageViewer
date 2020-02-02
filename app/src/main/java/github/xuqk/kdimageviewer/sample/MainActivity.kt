@@ -3,9 +3,10 @@ package github.xuqk.kdimageviewer.sample
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.viewpager.widget.ViewPager
+import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
-import com.bumptech.glide.module.AppGlideModule
 import com.bumptech.glide.request.target.Target
 import github.xuqk.kdimageviewer.DragPhotoViewHelper
 import kotlinx.android.synthetic.main.activity_main.*
@@ -50,12 +51,19 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        ivHelper.pageChangeCallback = object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                ivHelper.coverModule.getCoverView()?.findViewById<TextView>(R.id.tv_index)
+                    ?.text = "${position + 1}/${originList.size}"
+            }
+        }
+
         Glide.with(iv0)
             .load(list[0])
             .override(Target.SIZE_ORIGINAL)
             .into(iv0)
         iv0.setOnClickListener {
-            ivHelper.show(originList, list, 0)
+            ivHelper.show(originList, 0)
         }
 
         GlideApp.with(iv1)
@@ -63,7 +71,7 @@ class MainActivity : AppCompatActivity() {
             .override(Target.SIZE_ORIGINAL)
             .into(iv1)
         iv1.setOnClickListener {
-            ivHelper.show(originList, list,   1)
+            ivHelper.show(originList, 1)
         }
 
         GlideApp.with(iv2)
@@ -71,7 +79,7 @@ class MainActivity : AppCompatActivity() {
             .override(Target.SIZE_ORIGINAL)
             .into(iv2)
         iv2.setOnClickListener {
-            ivHelper.show(originList, list, 2)
+            ivHelper.show(originList, 2)
         }
 
         GlideApp.with(iv3)
@@ -79,7 +87,7 @@ class MainActivity : AppCompatActivity() {
             .override(Target.SIZE_ORIGINAL)
             .into(iv3)
         iv3.setOnClickListener {
-            ivHelper.show(originList, list, 3)
+            ivHelper.show(originList, 3)
         }
 
         GlideApp.with(iv4)
@@ -87,7 +95,7 @@ class MainActivity : AppCompatActivity() {
             .override(Target.SIZE_ORIGINAL)
             .into(iv4)
         iv4.setOnClickListener {
-            ivHelper.show(originList, list, 4)
+            ivHelper.show(originList, 4)
         }
 
         GlideApp.with(iv5)
@@ -95,7 +103,7 @@ class MainActivity : AppCompatActivity() {
             .override(Target.SIZE_ORIGINAL)
             .into(iv5)
         iv5.setOnClickListener {
-            ivHelper.show(originList, list, 5)
+            ivHelper.show(originList, 5)
         }
 
         GlideApp.with(iv6)
@@ -103,7 +111,7 @@ class MainActivity : AppCompatActivity() {
             .override(Target.SIZE_ORIGINAL)
             .into(iv6)
         iv6.setOnClickListener {
-            ivHelper.show(originList, list, 6)
+            ivHelper.show(originList, 6)
         }
 
     }

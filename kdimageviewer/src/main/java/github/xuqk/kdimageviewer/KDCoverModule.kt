@@ -16,7 +16,7 @@ import android.widget.ProgressBar
  * Description：
  */
 
-open class DefaultCoverModule(private val activity: Activity) {
+open class KDCoverModule(private val activity: Activity) {
 
     open fun getLoadingView(): View {
         val wrapView = FrameLayout(activity)
