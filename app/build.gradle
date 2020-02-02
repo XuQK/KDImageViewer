@@ -43,5 +43,5 @@ dependencies {
     kapt 'com.github.bumptech.glide:compiler:4.11.0'
 
     debugImplementation project(':kdimageviewer')
-    releaseImplementation 'com.github.XuQK:KDImageViewer:1.0.0'
+    releaseImplementation 'com.github.XuQK:KDImageViewer:1.1.0'
 }

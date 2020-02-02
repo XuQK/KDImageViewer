@@ -1,3 +1,6 @@
+[![](https://jitpack.io/v/XuQK/KDImageViewer.svg)](https://jitpack.io/#XuQK/KDImageViewer)
+
+
 仿微信的大图浏览器，可对加载中，加载失败，大图蒙层进行自定义。
 
 代码基本上都是[XPopup](https://github.com/li-xiaojun/XPopup)中的图片浏览部分进行的抽离与修改，将之抽出来，进行了一点修改，使用ViewPager2替换ViewPager，对缩略图和原图的关系做了一些处理。
