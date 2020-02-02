@@ -4,19 +4,18 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.viewpager.widget.ViewPager
 import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.Target
-import github.xuqk.kdimageviewer.DragPhotoViewHelper
+import github.xuqk.kdimageviewer.KDImageViewer
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
-    private val ivHelper: DragPhotoViewHelper by lazy {
-        DragPhotoViewHelper(
+    private val ivHelper: KDImageViewer by lazy {
+        KDImageViewer(
             activity = this,
-            imageLoader = DragPhotoViewLoader,
+            imageLoader = KDImageViewLoader,
             coverModule = MyCoverModule(this)
         )
     }
@@ -45,7 +44,7 @@ class MainActivity : AppCompatActivity() {
 
         val views = listOf(iv0, iv1, iv2, iv3, iv4, iv5, iv6)
 
-        ivHelper.srcImageViewFetcher = object : DragPhotoViewHelper.SrcImageViewFetcher() {
+        ivHelper.srcImageViewFetcher = object : KDImageViewer.SrcImageViewFetcher() {
             override fun getSrcImageView(position: Int): ImageView? {
                 return views[position]
             }

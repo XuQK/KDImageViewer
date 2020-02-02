@@ -32,7 +32,7 @@ import github.xuqk.kdimageviewer.photoview.PhotoView
  * @param coverModule 蒙层模块
  * @param onAnimateListener 动画起始结束监听
  */
-class DragPhotoViewHelper(
+class KDImageViewer(
     private val activity: AppCompatActivity,
     private val imageLoader: ImageLoader,
     private val animDuration: Long = 300L,

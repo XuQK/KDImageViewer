@@ -122,7 +122,7 @@ class PhotoViewContainer @JvmOverloads constructor(
     }
 
     private fun getCurrentPhotoView(): PhotoView? {
-        return ((viewPager?.getChildAt(0) as? RecyclerView)?.adapter as? DragPhotoViewHelper.ImageViewerAdapter)?.getCurrentPhotoView(viewPager!!.currentItem)
+        return ((viewPager?.getChildAt(0) as? RecyclerView)?.adapter as? KDImageViewer.ImageViewerAdapter)?.getCurrentPhotoView(viewPager!!.currentItem)
     }
 
     override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {

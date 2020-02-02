@@ -16,7 +16,7 @@ import github.xuqk.kdimageviewer.ImageLoader
  * Description：
  */
 
-object DragPhotoViewLoader : ImageLoader {
+object KDImageViewLoader : ImageLoader {
     override fun load(imageView: ImageView, url: String?, loaderListener: ImageLoader.ImageLoaderListener?) {
         Glide.with(imageView).load(url)
             .override(Target.SIZE_ORIGINAL)
