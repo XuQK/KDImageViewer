@@ -69,21 +69,14 @@ class KDImageViewer(
     var srcImageViewFetcher: SrcImageViewFetcher = SrcImageViewFetcher()
 
     init {
-        photoViewContainer.addView(pager, generateDefaultLayoutParams())
+        pager.adapter = ImageViewerAdapter()
 
-        pager.run {
-            pager.offscreenPageLimit = 1
-//            pager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-//                override fun onPageSelected(position: Int) {
-//                    currentPosition = position
-//                }
-//            })
-            pager.adapter = ImageViewerAdapter()
+        photoViewContainer.run {
+            addView(pager, generateDefaultLayoutParams())
+            addView(snapshotView, generateDefaultLayoutParams())
+            viewPager = pager
+            dragChangeListener = this@KDImageViewer
         }
-
-        photoViewContainer.addView(snapshotView, generateDefaultLayoutParams())
-        photoViewContainer.viewPager = pager
-        photoViewContainer.dragChangeListener = this
 
         rootView.addView(photoViewContainer, generateDefaultLayoutParams())
         coverModule.getCoverView()?.let {
