@@ -2,8 +2,10 @@ package github.xuqk.kdimageviewer.sample
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.ImageView
 import androidx.viewpager.widget.ViewPager
 import com.bumptech.glide.Glide
+import com.bumptech.glide.module.AppGlideModule
 import com.bumptech.glide.request.target.Target
 import github.xuqk.kdimageviewer.DragPhotoViewHelper
 import kotlinx.android.synthetic.main.activity_main.*
@@ -24,7 +26,7 @@ class MainActivity : AppCompatActivity() {
 
         val list = mutableListOf<String>()
         list.add("https://xgimg1test.hktanis.com/data/upload/mall/store/goods/63/2019/05/20/63_06116634387516739.jpeg?x-oss-process=image/resize,m_mfit,w_196,h_196/quality,Q_10/format,webp")
-        list.add("https://xgimg1test.hktanis.com/data/upload/mall/store/64_06329305350921408.jpeg?x-oss-process=image/resize,m_mfit,w_196,h_196/quality,Q_10/format,webp")
+        list.add("https://xgimg1.hktanis.com/data/upload/image/im/101033103918464/2020/02/01/101156431746240.jpeg?x-oss-process=image/resize,m_mfit,w_393,h_525/format,webp")
         list.add("https://xgimg1test.hktanis.com/data/upload/mall/store/goods/64/2020/01/14/64_06323362325244775.jpeg?x-oss-process=image/resize,m_mfit,w_196,h_196/quality,Q_10/format,webp")
         list.add("https://xgimg1test.hktanis.com/data/upload/mall/store/goods/338/2020/01/04/338_06314621000006721.jpeg?x-oss-process=image/resize,m_mfit,w_196,h_196/quality,Q_10/format,webp")
         list.add("https://xgimg1test.hktanis.com/data/upload/mall/store/goods/338/2020/01/04/338_06314618961051248.jpeg?x-oss-process=image/resize,m_mfit,w_196,h_196/quality,Q_10/format,webp")
@@ -33,7 +35,7 @@ class MainActivity : AppCompatActivity() {
 
         val originList = mutableListOf<String>()
         originList.add("https://xgimg1test.hktanis.com/data/upload/mall/store/goods/63/2019/05/20/63_06116634387516739.jpeg?x-oss-process=image/format,webp")
-        originList.add("https://xgimg1test.hktanis.com/data/upload/mall/store/64_06329305350921408.jpeg?x-oss-process=image/format,webp")
+        originList.add("https://xgimg1.hktanis.com/data/upload/image/im/101033103918464/2020/02/01/101156314360704.jpeg?x-oss-process=image/format,webp")
         originList.add("https://xgimg1test.hktanis.com/data/upload/mall/store/goods/64/2020/01/14/64_06323362325244775.jpeg?x-oss-process=image/format,webp")
         originList.add("https://xgimg1test.hktanis.com/data/upload/mall/store/goods/338/2020/01/04/338_06314621000006721.jpeg?x-oss-process=image/format,webp")
         originList.add("https://xgimg1test.hktanis.com/data/upload/mall/store/goods/338/2020/01/04/338_06314618961051248.jpeg?x-oss-process=image/format,webp")
@@ -42,9 +44,9 @@ class MainActivity : AppCompatActivity() {
 
         val views = listOf(iv0, iv1, iv2, iv3, iv4, iv5, iv6)
 
-        ivHelper.pageChangeListener = object : ViewPager.SimpleOnPageChangeListener() {
-            override fun onPageSelected(position: Int) {
-                ivHelper.srcView = views[position]
+        ivHelper.srcImageViewFetcher = object : DragPhotoViewHelper.SrcImageViewFetcher() {
+            override fun getSrcImageView(position: Int): ImageView? {
+                return views[position]
             }
         }
 
@@ -53,55 +55,55 @@ class MainActivity : AppCompatActivity() {
             .override(Target.SIZE_ORIGINAL)
             .into(iv0)
         iv0.setOnClickListener {
-            ivHelper.show(originList, list, iv0, 0)
+            ivHelper.show(originList, list, 0)
         }
 
-        Glide.with(iv1)
+        GlideApp.with(iv1)
             .load(list[1])
             .override(Target.SIZE_ORIGINAL)
             .into(iv1)
         iv1.setOnClickListener {
-            ivHelper.show(originList, list, iv1,  1)
+            ivHelper.show(originList, list,   1)
         }
 
-        Glide.with(iv2)
+        GlideApp.with(iv2)
             .load(list[2])
             .override(Target.SIZE_ORIGINAL)
             .into(iv2)
         iv2.setOnClickListener {
-            ivHelper.show(originList, list, iv2, 2)
+            ivHelper.show(originList, list, 2)
         }
 
-        Glide.with(iv3)
+        GlideApp.with(iv3)
             .load(list[3])
             .override(Target.SIZE_ORIGINAL)
             .into(iv3)
         iv3.setOnClickListener {
-            ivHelper.show(originList, list, iv3, 3)
+            ivHelper.show(originList, list, 3)
         }
 
-        Glide.with(iv4)
+        GlideApp.with(iv4)
             .load(list[4])
             .override(Target.SIZE_ORIGINAL)
             .into(iv4)
         iv4.setOnClickListener {
-            ivHelper.show(originList, list, iv4, 4)
+            ivHelper.show(originList, list, 4)
         }
 
-        Glide.with(iv5)
+        GlideApp.with(iv5)
             .load(list[5])
             .override(Target.SIZE_ORIGINAL)
             .into(iv5)
         iv5.setOnClickListener {
-            ivHelper.show(originList, list, iv5, 5)
+            ivHelper.show(originList, list, 5)
         }
 
-        Glide.with(iv6)
+        GlideApp.with(iv6)
             .load(list[6])
             .override(Target.SIZE_ORIGINAL)
             .into(iv6)
         iv6.setOnClickListener {
-            ivHelper.show(originList, list, iv6, 6)
+            ivHelper.show(originList, list, 6)
         }
 
     }

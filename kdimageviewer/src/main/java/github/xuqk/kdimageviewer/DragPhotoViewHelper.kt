@@ -57,14 +57,17 @@ class DragPhotoViewHelper(
         private set
 
     var currentPosition = 0
-    var srcView: ImageView? = null
-        set(value) {
-            if (showing) {
-                field = value
-            }
-        }
+        private set
+//    var srcView: ImageView? = null
+//        set(value) {
+//            if (showing) {
+//                field = value
+//            }
+//        }
 
     var pageChangeListener: SimpleOnPageChangeListener? = null
+
+    var srcImageViewFetcher: SrcImageViewFetcher = SrcImageViewFetcher()
 
     init {
         photoViewContainer.addView(pager)
@@ -93,7 +96,7 @@ class DragPhotoViewHelper(
         }
     }
 
-    fun show(originUrlList: List<String?>, thumbUrlList: List<String?>, srcView: ImageView, position: Int) {
+    fun show(originUrlList: List<String?>, thumbUrlList: List<String?>, position: Int) {
         if (photoViewContainer.isAnimating) return
         showing = true
 
@@ -107,12 +110,13 @@ class DragPhotoViewHelper(
         pager.adapter = PhotoViewAdapter()
         pager.currentItem = position
 
-        this.srcView = srcView
+//        this.srcView = srcView
 
         photoViewContainer.isAnimating = true
 
         // 将snapshotView设置成列表中的srcView的样子
-        updateSrcViewParams()
+        val srcView = srcImageViewFetcher.getSrcImageView(currentPosition)
+        updateSrcViewParams(srcView)
 
         photoViewContainer.setBackgroundColor(Color.TRANSPARENT)
 
@@ -125,7 +129,7 @@ class DragPhotoViewHelper(
             translationY = rect.top
             scaleX = 1f
             scaleY = 1f
-            scaleType = if (srcView != null) srcView!!.scaleType else ImageView.ScaleType.CENTER_CROP
+            scaleType = if (srcView != null) srcView.scaleType else ImageView.ScaleType.CENTER_CROP
 
             layoutParams = layoutParams.apply {
                 width = rect.width().toInt()
@@ -181,7 +185,8 @@ class DragPhotoViewHelper(
         if (photoViewContainer.isAnimating) return
         photoViewContainer.isAnimating = true
 
-        updateSrcViewParams()
+        val srcView = srcImageViewFetcher.getSrcImageView(currentPosition)
+        updateSrcViewParams(srcView)
 
         // 将snapshotView设置成当前pager中photoView的样子(matrix)
         (pager.adapter as PhotoViewAdapter).primaryPhotoView?.let {
@@ -230,7 +235,7 @@ class DragPhotoViewHelper(
             translationX = rect.left
             scaleX = 1f
             scaleY = 1f
-            scaleType = if (srcView != null) srcView!!.scaleType else ImageView.ScaleType.CENTER_CROP
+            scaleType = if (srcView != null) srcView.scaleType else ImageView.ScaleType.CENTER_CROP
             layoutParams = layoutParams.apply {
                 width = rect.width().toInt()
                 height = rect.height().toInt()
@@ -269,11 +274,11 @@ class DragPhotoViewHelper(
     /**
      * 更新srcView参数
      */
-    private fun updateSrcViewParams() {
+    private fun updateSrcViewParams(srcView: ImageView?) {
         if (srcView == null) {
             rect.set(0f, 0f, 0f, 0f)
         } else {
-            srcView!!.getLocationInWindow(currentOriginViewLocation)
+            srcView.getLocationInWindow(currentOriginViewLocation)
             rect.set(
                 currentOriginViewLocation[0].toFloat(),
                 currentOriginViewLocation[1].toFloat(),
@@ -303,7 +308,6 @@ class DragPhotoViewHelper(
 
     private fun reset() {
         snapshotView.setImageDrawable(null)
-        srcView = null
         originUrlList.clear()
         thumbUrlList.clear()
         pager.adapter = null
@@ -340,7 +344,8 @@ class DragPhotoViewHelper(
             }
 
             // 先加载已有缩略图
-            imageLoader.load(photoView, thumbUrlList[position], null)
+            photoView.setImageDrawable(srcImageViewFetcher.getSrcImageView(position)?.drawable)
+//            imageLoader.load(photoView, thumbUrlList[position], null)
 
             // 再加载原图
             loadOriginImage(photoView, position, loadFailedView, loadingView)
@@ -374,6 +379,15 @@ class DragPhotoViewHelper(
                     loadFailedView.visibility = View.INVISIBLE
                 }
             })
+        }
+    }
+
+    /**
+     * 根据position获取srcView的工具，如果要实现完美效果，必须实现它
+     */
+    open class SrcImageViewFetcher {
+        open fun getSrcImageView(position: Int): ImageView? {
+            return null
         }
     }
 }
