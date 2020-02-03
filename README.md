@@ -1,5 +1,6 @@
 [![](https://jitpack.io/v/XuQK/KDImageViewer.svg)](https://jitpack.io/#XuQK/KDImageViewer)
 
+[](demo.gif)
 
 仿微信的大图浏览器，可对加载中，加载失败，大图蒙层进行自定义。
 
