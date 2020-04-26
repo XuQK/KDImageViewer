@@ -79,6 +79,7 @@ class KDImageViewer(
         }
 
         rootView.addView(photoViewContainer, generateDefaultLayoutParams())
+        rootView.translationZ = 32f
         coverModule.getCoverView()?.let {
             rootView.addView(it, generateDefaultLayoutParams())
         }
