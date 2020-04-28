@@ -45,4 +45,8 @@ object KDImageViewLoader : ImageLoader {
                 }
             })
     }
+
+    override fun stopLoad(imageView: ImageView) {
+        Glide.with(imageView).clear(imageView)
+    }
 }

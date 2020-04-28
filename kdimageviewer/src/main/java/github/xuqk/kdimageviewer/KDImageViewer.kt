@@ -307,7 +307,6 @@ class KDImageViewer(
             view.layoutParams = generateDefaultLayoutParams()
 
             val photoView = PhotoView(activity)
-            photoView.tag = "primaryPhotoView"
             val loadingView = coverModule.getLoadingView()
             val loadFailedView = coverModule.getLoadFailedView()
 
@@ -334,6 +333,10 @@ class KDImageViewer(
 
             // 再加载原图
             loadOriginImage(holder, position)
+        }
+
+        override fun onViewRecycled(holder: ImageViewerViewHolder) {
+            imageLoader.stopLoad(holder.photoView)
         }
 
         private fun loadOriginImage(holder: ImageViewerViewHolder, position: Int) {
@@ -400,6 +403,8 @@ interface OnAnimateListener {
 
 interface ImageLoader {
     fun load(imageView: ImageView, url: String?, loaderListener: ImageLoaderListener?)
+
+    fun stopLoad(imageView: ImageView)
 
     interface ImageLoaderListener {
         fun onLoadFailed(errorDrawable: Drawable?)
