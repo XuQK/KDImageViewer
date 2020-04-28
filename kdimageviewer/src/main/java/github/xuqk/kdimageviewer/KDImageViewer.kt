@@ -202,6 +202,9 @@ class KDImageViewer(
                         photoViewContainer.isAnimating = false
                         (rootView.parent as? ViewGroup)?.removeView(rootView)
                         pager.visibility = View.INVISIBLE
+                        (pager.adapter as? ImageViewerAdapter)?.getCurrentPhotoView(pager.currentItem)?.let {
+                            imageLoader.stopLoad(it)
+                        }
                         snapshotView.visibility = View.VISIBLE
                         pager.scaleX = 1f
                         pager.scaleY = 1f
