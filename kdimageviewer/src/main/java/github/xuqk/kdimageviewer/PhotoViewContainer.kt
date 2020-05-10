@@ -10,8 +10,7 @@ import android.view.View
 import android.widget.FrameLayout
 import androidx.core.view.ViewCompat
 import androidx.customview.widget.ViewDragHelper
-import androidx.recyclerview.widget.RecyclerView
-import androidx.viewpager2.widget.ViewPager2
+import androidx.viewpager.widget.ViewPager
 import github.xuqk.kdimageviewer.photoview.PhotoView
 import kotlin.math.abs
 import kotlin.math.min
@@ -74,7 +73,7 @@ class PhotoViewContainer @JvmOverloads constructor(
     }
 
     private val dragHelper: ViewDragHelper = ViewDragHelper.create(this, cb)
-    var viewPager: ViewPager2? = null
+    var viewPager: ViewPager? = null
     private val hideTopThreshold = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 80f, resources.displayMetrics)
     private var maxOffset = 0
     var dragChangeListener: OnDragChangeListener? = null
@@ -122,7 +121,8 @@ class PhotoViewContainer @JvmOverloads constructor(
     }
 
     private fun getCurrentPhotoView(): PhotoView? {
-        return ((viewPager?.getChildAt(0) as? RecyclerView)?.adapter as? KDImageViewer.ImageViewerAdapter)?.getCurrentPhotoView(viewPager!!.currentItem)
+        return (viewPager?.adapter as? KDImageViewer.ImageViewerAdapter2)?.currentPhotoView
+//        return ((viewPager?.getChildAt(0) as? RecyclerView)?.adapter as? KDImageViewer.ImageViewerAdapter)?.getCurrentPhotoView(viewPager!!.currentItem)
     }
 
     override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {

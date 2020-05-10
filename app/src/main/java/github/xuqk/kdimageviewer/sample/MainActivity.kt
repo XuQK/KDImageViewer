@@ -4,7 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.viewpager2.widget.ViewPager2
+import androidx.viewpager.widget.ViewPager
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.Target
 import github.xuqk.kdimageviewer.KDImageViewer
@@ -50,11 +50,24 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        ivHelper.pageChangeCallback = object : ViewPager2.OnPageChangeCallback() {
+        ivHelper.pageChangeListener = object : ViewPager.OnPageChangeListener {
+            override fun onPageScrollStateChanged(state: Int) {
+
+            }
+
+            override fun onPageScrolled(
+                position: Int,
+                positionOffset: Float,
+                positionOffsetPixels: Int
+            ) {
+
+            }
+
             override fun onPageSelected(position: Int) {
                 ivHelper.coverModule.getCoverView()?.findViewById<TextView>(R.id.tv_index)
                     ?.text = "${position + 1}/${originList.size}"
             }
+
         }
 
         Glide.with(iv0)

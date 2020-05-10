@@ -15,9 +15,9 @@ import android.widget.ImageView
 import androidx.annotation.ColorInt
 import androidx.appcompat.app.AppCompatActivity
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
-import androidx.recyclerview.widget.RecyclerView
 import androidx.transition.*
-import androidx.viewpager2.widget.ViewPager2
+import androidx.viewpager.widget.PagerAdapter
+import androidx.viewpager.widget.ViewPager
 import github.xuqk.kdimageviewer.photoview.PhotoView
 
 /**
@@ -43,7 +43,7 @@ class KDImageViewer(
 
     private val rootView: ViewGroup = FrameLayout(activity)
     private val photoViewContainer = PhotoViewContainer(activity)
-    private val pager = ViewPager2(activity)
+    private val pager = ViewPager(activity)
     private val snapshotView = PhotoView(activity)
 
     private val originUrlList = mutableListOf<String?>()
@@ -54,23 +54,21 @@ class KDImageViewer(
     var showing: Boolean = false
         private set
 
-    var pageChangeCallback: ViewPager2.OnPageChangeCallback? = null
+    var pageChangeListener: ViewPager.OnPageChangeListener? = null
         set(value) {
-            if (field != value && value != null) {
-                if (field != null) {
-                    pager.unregisterOnPageChangeCallback(field!!)
-                }
-                pager.registerOnPageChangeCallback(value)
+            if (field != null) {
+                pager.removeOnPageChangeListener(field!!)
+            }
 
-                field = value
+            field = value
+            if (field != null) {
+                pager.addOnPageChangeListener(field!!)
             }
         }
 
     var srcImageViewFetcher: SrcImageViewFetcher = SrcImageViewFetcher()
 
     init {
-        pager.adapter = ImageViewerAdapter()
-
         photoViewContainer.run {
             addView(pager, generateDefaultLayoutParams())
             addView(snapshotView, generateDefaultLayoutParams())
@@ -93,14 +91,14 @@ class KDImageViewer(
 
         this.originUrlList.clear()
         this.originUrlList.addAll(originUrlList)
-        pager.adapter!!.notifyDataSetChanged()
+        pager.adapter = ImageViewerAdapter2()
 
         pager.setCurrentItem(position, false)
 
         photoViewContainer.isAnimating = true
 
         // 将snapshotView设置成列表中的srcView的样子
-        val srcView = srcImageViewFetcher.getSrcImageView(getCurrentPosition())
+        val srcView = srcImageViewFetcher.getSrcImageView(position)
         updateSrcViewParams(srcView)
 
         photoViewContainer.setBackgroundColor(Color.TRANSPARENT)
@@ -174,7 +172,7 @@ class KDImageViewer(
         updateSrcViewParams(srcView)
 
         // 将snapshotView设置成当前pager中photoView的样子(matrix)
-        (pager.adapter as ImageViewerAdapter).getCurrentPhotoView(getCurrentPosition())?.let {
+        (pager.adapter as ImageViewerAdapter2).currentPhotoView?.let {
             snapshotView.run {
                 setImageDrawable(it.drawable)
 
@@ -202,7 +200,7 @@ class KDImageViewer(
                         photoViewContainer.isAnimating = false
                         (rootView.parent as? ViewGroup)?.removeView(rootView)
                         pager.visibility = View.INVISIBLE
-                        (pager.adapter as? ImageViewerAdapter)?.getCurrentPhotoView(pager.currentItem)?.let {
+                        (pager.adapter as? ImageViewerAdapter2)?.currentPhotoView?.let {
                             imageLoader.stopLoad(it)
                         }
                         snapshotView.visibility = View.VISIBLE
@@ -300,16 +298,21 @@ class KDImageViewer(
 
     private fun generateDefaultLayoutParams() = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
 
-    inner class ImageViewerAdapter : RecyclerView.Adapter<ImageViewerAdapter.ImageViewerViewHolder>() {
-        private var recyclerView: RecyclerView? = null
-
+    inner class ImageViewerAdapter2 : PagerAdapter() {
         private val onClickListener = View.OnClickListener { dismiss() }
+        var currentPhotoView: PhotoView? = null
+            private set
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewerViewHolder {
-            val view = FrameLayout(activity)
-            view.layoutParams = generateDefaultLayoutParams()
+        override fun setPrimaryItem(container: ViewGroup, position: Int, `object`: Any) {
+            super.setPrimaryItem(container, position, `object`)
+            currentPhotoView = (`object` as ViewGroup).getChildAt(0) as PhotoView
+        }
 
-            val photoView = PhotoView(activity)
+        override fun instantiateItem(container: ViewGroup, position: Int): Any {
+            val view = FrameLayout(container.context)
+            container.addView(view, generateDefaultLayoutParams())
+
+            val photoView = PhotoView(container.context)
             val loadingView = coverModule.getLoadingView()
             val loadFailedView = coverModule.getLoadFailedView()
 
@@ -319,67 +322,50 @@ class KDImageViewer(
 
             photoView.setOnClickListener(onClickListener)
 
-            return ImageViewerViewHolder(view, photoView, loadingView, loadFailedView)
-        }
-
-        override fun getItemCount(): Int {
-            return originUrlList.size
-        }
-
-        override fun onBindViewHolder(holder: ImageViewerViewHolder, position: Int) {
-            holder.loadFailedView.setOnClickListener {
-                loadOriginImage(holder, position)
+            loadFailedView.setOnClickListener {
+                loadOriginImage(photoView, loadFailedView, loadingView, position)
             }
 
             // 先加载已有缩略图
-            holder.photoView.setImageDrawable(srcImageViewFetcher.getSrcImageView(position)?.drawable)
+            photoView.setImageDrawable(srcImageViewFetcher.getSrcImageView(position)?.drawable)
 
             // 再加载原图
-            loadOriginImage(holder, position)
+            loadOriginImage(photoView, loadFailedView, loadingView, position)
+
+            return view
         }
 
-        override fun onViewRecycled(holder: ImageViewerViewHolder) {
-            imageLoader.stopLoad(holder.photoView)
+        override fun isViewFromObject(view: View, `object`: Any): Boolean {
+            return view == `object`
         }
 
-        private fun loadOriginImage(holder: ImageViewerViewHolder, position: Int) {
+        override fun getCount(): Int {
+            return originUrlList.size
+        }
+
+        override fun destroyItem(container: ViewGroup, position: Int, `object`: Any) {
+            container.removeView(`object` as View)
+        }
+
+        private fun loadOriginImage(photoView: PhotoView, loadFailedView: View, loadingView: View, position: Int) {
             if (!showing) return
 
-            holder.loadFailedView.visibility = View.GONE
-            holder.loadingView.visibility = View.VISIBLE
+            loadFailedView.visibility = View.GONE
+            loadingView.visibility = View.VISIBLE
 
-            imageLoader.load(holder.photoView, originUrlList[position], object :
+            imageLoader.load(photoView, originUrlList[position], object :
                 ImageLoader.ImageLoaderListener {
                 override fun onLoadFailed(errorDrawable: Drawable?) {
-                    holder.loadingView.visibility = View.INVISIBLE
-                    holder.loadFailedView.visibility = View.VISIBLE
+                    loadingView.visibility = View.INVISIBLE
+                    loadFailedView.visibility = View.VISIBLE
                 }
 
                 override fun onLoadSuccess(drawable: Drawable?) {
-                    holder.loadingView.visibility = View.INVISIBLE
-                    holder.loadFailedView.visibility = View.INVISIBLE
+                    loadingView.visibility = View.INVISIBLE
+                    loadFailedView.visibility = View.INVISIBLE
                 }
             })
         }
-
-        override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
-            this.recyclerView = recyclerView
-        }
-
-        override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
-            this.recyclerView = null
-        }
-
-        fun getCurrentPhotoView(position: Int): PhotoView? {
-            return (recyclerView?.findViewHolderForLayoutPosition(position) as? ImageViewerViewHolder)?.photoView
-        }
-
-        inner class ImageViewerViewHolder(
-            itemView: View,
-            val photoView: PhotoView,
-            val loadingView: View,
-            val loadFailedView: View
-        ) : RecyclerView.ViewHolder(itemView)
     }
 
     /**
