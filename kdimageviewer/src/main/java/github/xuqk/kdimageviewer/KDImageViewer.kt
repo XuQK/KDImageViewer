@@ -296,7 +296,7 @@ class KDImageViewer(
         snapshotView.setImageDrawable(null)
     }
 
-    private fun generateDefaultLayoutParams() = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+    private fun generateDefaultLayoutParams() = ViewGroup.MarginLayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
 
     inner class ImageViewerAdapter2 : PagerAdapter() {
         private val onClickListener = View.OnClickListener { dismiss() }
@@ -316,7 +316,10 @@ class KDImageViewer(
             val loadingView = coverModule.getLoadingView()
             val loadFailedView = coverModule.getLoadFailedView()
 
-            view.addView(photoView, generateDefaultLayoutParams())
+            view.addView(photoView, generateDefaultLayoutParams().apply {
+                // 这里要给一个像素的边距，不然某些情况下scale==1时，图片会消失，原因不明。。
+                setMargins(1, 1, 1, 1)
+            })
             view.addView(loadingView, generateDefaultLayoutParams())
             view.addView(loadFailedView, generateDefaultLayoutParams())
 
