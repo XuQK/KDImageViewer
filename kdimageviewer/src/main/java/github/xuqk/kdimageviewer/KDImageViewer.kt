@@ -7,6 +7,7 @@ import android.graphics.Matrix
 import android.graphics.RectF
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.LinearInterpolator
@@ -26,25 +27,24 @@ import github.xuqk.kdimageviewer.photoview.PhotoView
  * Creator Email：xuqiankun66@gmail.com
  * Description：
  *
- * @param activity
  * @param animDuration 动画时长
  * @param defaultBgColor 大图模式的背景色
  * @param coverModule 蒙层模块
  * @param onAnimateListener 动画起始结束监听
  */
 class KDImageViewer(
-    private val activity: AppCompatActivity,
+    private val attachedView: ViewGroup,
     private val imageLoader: ImageLoader,
     private val animDuration: Long = 300L,
     @ColorInt private val defaultBgColor: Int = Color.BLACK,
-    val coverModule: KDCoverModule = KDCoverModule(activity),
+    val coverModule: KDCoverModule? = null,
     var onAnimateListener: OnAnimateListener? = null
 ) : OnDragChangeListener {
 
-    private val rootView: ViewGroup = FrameLayout(activity)
-    private val photoViewContainer = PhotoViewContainer(activity)
-    private val pager = ViewPager(activity)
-    private val snapshotView = PhotoView(activity)
+    private val containerView: ViewGroup = FrameLayout(attachedView.context)
+    private val photoViewContainer = PhotoViewContainer(attachedView.context)
+    private val pager = ViewPager(attachedView.context)
+    private val snapshotView = PhotoView(attachedView.context)
 
     private val originUrlList = mutableListOf<String?>()
 
@@ -76,10 +76,10 @@ class KDImageViewer(
             dragChangeListener = this@KDImageViewer
         }
 
-        rootView.addView(photoViewContainer, generateDefaultLayoutParams())
-        rootView.translationZ = 32f
-        coverModule.getCoverView()?.let {
-            rootView.addView(it, generateDefaultLayoutParams())
+        containerView.addView(photoViewContainer, generateDefaultLayoutParams())
+        containerView.translationZ = 100f
+        coverModule?.getCoverView()?.let {
+            containerView.addView(it, generateDefaultLayoutParams())
         }
     }
 
@@ -103,7 +103,7 @@ class KDImageViewer(
 
         photoViewContainer.setBackgroundColor(Color.TRANSPARENT)
 
-        (activity.window.decorView as ViewGroup).addView(rootView, generateDefaultLayoutParams())
+        attachedView.addView(containerView, generateDefaultLayoutParams())
         pager.visibility = View.INVISIBLE
 
         snapshotView.run {
@@ -154,13 +154,13 @@ class KDImageViewer(
                 scaleType = ImageView.ScaleType.FIT_CENTER
 
                 layoutParams = layoutParams.apply {
-                    width = rootView.width
-                    height = rootView.height
+                    width = containerView.width
+                    height = containerView.height
                 }
             }
 
             animateShadowBg(defaultBgColor)
-            coverModule.getCoverView()?.animate()?.alpha(1f)?.setDuration(animDuration)?.start()
+            coverModule?.getCoverView()?.animate()?.alpha(1f)?.setDuration(animDuration)?.start()
         }
     }
 
@@ -198,7 +198,7 @@ class KDImageViewer(
                 .addListener(object : TransitionListenerAdapter() {
                     override fun onTransitionEnd(transition: Transition) {
                         photoViewContainer.isAnimating = false
-                        (rootView.parent as? ViewGroup)?.removeView(rootView)
+                        (containerView.parent as? ViewGroup)?.removeView(containerView)
                         pager.visibility = View.INVISIBLE
                         (pager.adapter as? ImageViewerAdapter2)?.currentPhotoView?.let {
                             imageLoader.stopLoad(it)
@@ -229,7 +229,7 @@ class KDImageViewer(
         }
 
         animateShadowBg(Color.TRANSPARENT)
-        coverModule.getCoverView()?.animate()?.alpha(0f)?.setDuration(animDuration)?.start()
+        coverModule?.getCoverView()?.animate()?.alpha(0f)?.setDuration(animDuration)?.start()
     }
 
     fun handleBackPressed(): Boolean {
@@ -264,12 +264,18 @@ class KDImageViewer(
         if (srcView == null) {
             rect.set(0f, 0f, 0f, 0f)
         } else {
-            srcView.getLocationInWindow(currentOriginViewLocation)
+            attachedView.getLocationOnScreen(currentOriginViewLocation)
+            val containerX = currentOriginViewLocation[0]
+            val containerY = currentOriginViewLocation[1]
+
+            srcView.getLocationOnScreen(currentOriginViewLocation)
+            val x = currentOriginViewLocation[0] - containerX.toFloat()
+            val y = currentOriginViewLocation[1] - containerY.toFloat()
             rect.set(
-                currentOriginViewLocation[0].toFloat(),
-                currentOriginViewLocation[1].toFloat(),
-                (currentOriginViewLocation[0] + srcView.width).toFloat(),
-                (currentOriginViewLocation[1] + srcView.height).toFloat()
+                x,
+                y,
+                x + srcView.width,
+                y + srcView.height
             )
         }
     }
@@ -279,7 +285,7 @@ class KDImageViewer(
     }
 
     override fun onDragChange(dy: Int, scale: Float, fraction: Float) {
-        coverModule.getCoverView()?.let {
+        coverModule?.getCoverView()?.let {
             it.alpha = 1 - fraction
         }
 
@@ -313,19 +319,16 @@ class KDImageViewer(
             container.addView(view, generateDefaultLayoutParams())
 
             val photoView = PhotoView(container.context)
-            val loadingView = coverModule.getLoadingView()
-            val loadFailedView = coverModule.getLoadFailedView()
+            val loadingView = coverModule?.getLoadingView()
+            val loadFailedView = coverModule?.getLoadFailedView()
 
-            view.addView(photoView, generateDefaultLayoutParams().apply {
-                // 这里要给一个像素的边距，不然某些情况下scale==1时，图片会消失，原因不明。。
-                setMargins(1, 1, 1, 1)
-            })
+            view.addView(photoView, generateDefaultLayoutParams())
             view.addView(loadingView, generateDefaultLayoutParams())
             view.addView(loadFailedView, generateDefaultLayoutParams())
 
             photoView.setOnClickListener(onClickListener)
 
-            loadFailedView.setOnClickListener {
+            loadFailedView?.setOnClickListener {
                 loadOriginImage(photoView, loadFailedView, loadingView, position)
             }
 
@@ -350,22 +353,22 @@ class KDImageViewer(
             container.removeView(`object` as View)
         }
 
-        private fun loadOriginImage(photoView: PhotoView, loadFailedView: View, loadingView: View, position: Int) {
+        private fun loadOriginImage(photoView: PhotoView, loadFailedView: View?, loadingView: View?, position: Int) {
             if (!showing) return
 
-            loadFailedView.visibility = View.GONE
-            loadingView.visibility = View.VISIBLE
+            loadFailedView?.visibility = View.GONE
+            loadingView?.visibility = View.VISIBLE
 
             imageLoader.load(photoView, originUrlList[position], object :
                 ImageLoader.ImageLoaderListener {
                 override fun onLoadFailed(errorDrawable: Drawable?) {
-                    loadingView.visibility = View.INVISIBLE
-                    loadFailedView.visibility = View.VISIBLE
+                    loadingView?.visibility = View.INVISIBLE
+                    loadFailedView?.visibility = View.VISIBLE
                 }
 
                 override fun onLoadSuccess(drawable: Drawable?) {
-                    loadingView.visibility = View.INVISIBLE
-                    loadFailedView.visibility = View.INVISIBLE
+                    loadingView?.visibility = View.INVISIBLE
+                    loadFailedView?.visibility = View.INVISIBLE
                 }
             })
         }

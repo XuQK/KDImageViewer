@@ -1,6 +1,7 @@
 package github.xuqk.kdimageviewer
 
 import android.app.Activity
+import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.util.TypedValue
@@ -16,15 +17,15 @@ import android.widget.ProgressBar
  * Description：
  */
 
-open class KDCoverModule(private val activity: Activity) {
+open class KDCoverModule(private val context: Context) {
 
     open fun getLoadingView(): View {
-        val wrapView = FrameLayout(activity)
+        val wrapView = FrameLayout(context)
         val progressBarLp = FrameLayout.LayoutParams(
-            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 36f, activity.resources.displayMetrics).toInt(),
-            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 36f, activity.resources.displayMetrics).toInt())
+            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 36f, context.resources.displayMetrics).toInt(),
+            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 36f, context.resources.displayMetrics).toInt())
         progressBarLp.gravity = Gravity.CENTER
-        val progressBar = ProgressBar(activity)
+        val progressBar = ProgressBar(context)
         progressBar.alpha = 0.7f
         progressBar.indeterminateTintList = ColorStateList.valueOf(Color.WHITE)
         wrapView.addView(progressBar, progressBarLp)
@@ -32,7 +33,7 @@ open class KDCoverModule(private val activity: Activity) {
     }
 
     open fun getLoadFailedView(): View {
-        return View(activity)
+        return View(context)
     }
 
     open fun getCoverView(): View? {

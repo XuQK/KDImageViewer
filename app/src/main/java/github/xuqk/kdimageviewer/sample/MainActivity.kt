@@ -14,7 +14,7 @@ class MainActivity : AppCompatActivity() {
 
     private val ivHelper: KDImageViewer by lazy {
         KDImageViewer(
-            activity = this,
+            attachedView = findViewById(R.id.root),
             imageLoader = KDImageViewLoader,
             coverModule = MyCoverModule(this)
         )
@@ -64,7 +64,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onPageSelected(position: Int) {
-                ivHelper.coverModule.getCoverView()?.findViewById<TextView>(R.id.tv_index)
+                ivHelper.coverModule?.getCoverView()?.findViewById<TextView>(R.id.tv_index)
                     ?.text = "${position + 1}/${originList.size}"
             }
 
