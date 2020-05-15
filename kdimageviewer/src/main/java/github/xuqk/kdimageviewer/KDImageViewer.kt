@@ -2,19 +2,18 @@ package github.xuqk.kdimageviewer
 
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
+import android.content.Context
 import android.graphics.Color
 import android.graphics.Matrix
 import android.graphics.RectF
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.LinearInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.annotation.ColorInt
-import androidx.appcompat.app.AppCompatActivity
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.transition.*
 import androidx.viewpager.widget.PagerAdapter
@@ -33,7 +32,7 @@ import github.xuqk.kdimageviewer.photoview.PhotoView
  * @param onAnimateListener 动画起始结束监听
  */
 class KDImageViewer(
-    private val attachedView: ViewGroup,
+    context: Context,
     private val imageLoader: ImageLoader,
     private val animDuration: Long = 300L,
     @ColorInt private val defaultBgColor: Int = Color.BLACK,
@@ -41,10 +40,10 @@ class KDImageViewer(
     var onAnimateListener: OnAnimateListener? = null
 ) : OnDragChangeListener {
 
-    private val containerView: ViewGroup = FrameLayout(attachedView.context)
-    private val photoViewContainer = PhotoViewContainer(attachedView.context)
-    private val pager = ViewPager(attachedView.context)
-    private val snapshotView = PhotoView(attachedView.context)
+    private val containerView: ViewGroup = FrameLayout(context)
+    private val photoViewContainer = PhotoViewContainer(context)
+    private val pager = ViewPager(context)
+    private val snapshotView = PhotoView(context)
 
     private val originUrlList = mutableListOf<String?>()
 
@@ -76,7 +75,8 @@ class KDImageViewer(
             dragChangeListener = this@KDImageViewer
         }
 
-        containerView.addView(photoViewContainer, generateDefaultLayoutParams())
+        // 这里加个边距，在华为rom上，如果不加这个边距，ViewPager里的内容在scale=1的时候有可能不显示，原理不明。。
+        containerView.addView(photoViewContainer, generateDefaultLayoutParams().apply { setMargins(1, 1, 1, 1) })
         containerView.translationZ = 100f
         coverModule?.getCoverView()?.let {
             containerView.addView(it, generateDefaultLayoutParams())
@@ -85,7 +85,7 @@ class KDImageViewer(
 
     fun getCurrentPosition(): Int = pager.currentItem
 
-    fun show(originUrlList: List<String?>, position: Int) {
+    fun show(attachedView: ViewGroup, originUrlList: List<String?>, position: Int) {
         if (photoViewContainer.isAnimating) return
         showing = true
 
@@ -99,9 +99,9 @@ class KDImageViewer(
 
         // 将snapshotView设置成列表中的srcView的样子
         val srcView = srcImageViewFetcher.getSrcImageView(position)
-        updateSrcViewParams(srcView)
+        updateSrcViewParams(attachedView, srcView)
 
-        photoViewContainer.setBackgroundColor(Color.TRANSPARENT)
+        containerView.setBackgroundColor(Color.TRANSPARENT)
 
         attachedView.addView(containerView, generateDefaultLayoutParams())
         pager.visibility = View.INVISIBLE
@@ -169,7 +169,7 @@ class KDImageViewer(
         photoViewContainer.isAnimating = true
 
         val srcView = srcImageViewFetcher.getSrcImageView(getCurrentPosition())
-        updateSrcViewParams(srcView)
+        updateSrcViewParams((containerView.parent as ViewGroup), srcView)
 
         // 将snapshotView设置成当前pager中photoView的样子(matrix)
         (pager.adapter as ImageViewerAdapter2).currentPhotoView?.let {
@@ -243,10 +243,10 @@ class KDImageViewer(
     }
 
     private fun animateShadowBg(endColor: Int) {
-        val startColor = (photoViewContainer.background as ColorDrawable).color
+        val startColor = (containerView.background as ColorDrawable).color
         ValueAnimator.ofFloat(0f, 1f).apply {
             addUpdateListener {
-                photoViewContainer.setBackgroundColor(
+                containerView.setBackgroundColor(
                     argbEvaluator.evaluate(it.animatedFraction, startColor, endColor) as Int
                 )
             }
@@ -260,7 +260,7 @@ class KDImageViewer(
     /**
      * 更新srcView参数
      */
-    private fun updateSrcViewParams(srcView: ImageView?) {
+    private fun updateSrcViewParams(attachedView: ViewGroup, srcView: ImageView?) {
         if (srcView == null) {
             rect.set(0f, 0f, 0f, 0f)
         } else {
@@ -289,7 +289,7 @@ class KDImageViewer(
             it.alpha = 1 - fraction
         }
 
-        photoViewContainer.setBackgroundColor(
+        containerView.setBackgroundColor(
             argbEvaluator.evaluate(
                 fraction * 0.8f,
                 Color.BLACK,

@@ -2,9 +2,9 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/root"
     tools:context=".MainActivity">
 
     <LinearLayout
@@ -17,50 +17,61 @@
             android:id="@+id/iv0"
             android:layout_width="60dp"
             android:layout_height="60dp"
-            android:src="@drawable/example"
-            android:scaleType="centerCrop" />
+            android:scaleType="centerCrop"
+            android:src="@drawable/example" />
 
         <ImageView
             android:id="@+id/iv1"
             android:layout_width="60dp"
             android:layout_height="60dp"
-            android:src="@drawable/example"
-            android:scaleType="centerCrop" />
+            android:scaleType="centerCrop"
+            android:src="@drawable/example" />
 
         <ImageView
             android:id="@+id/iv2"
             android:layout_width="60dp"
             android:layout_height="60dp"
-            android:src="@drawable/example"
-            android:scaleType="centerCrop" />
+            android:scaleType="centerCrop"
+            android:src="@drawable/example" />
 
         <ImageView
             android:id="@+id/iv3"
             android:layout_width="60dp"
             android:layout_height="60dp"
-            android:src="@drawable/example"
-            android:scaleType="centerCrop" />
+            android:scaleType="centerCrop"
+            android:src="@drawable/example" />
 
         <ImageView
             android:id="@+id/iv4"
             android:layout_width="60dp"
             android:layout_height="60dp"
-            android:src="@drawable/example"
-            android:scaleType="centerCrop" />
+            android:scaleType="centerCrop"
+            android:src="@drawable/example" />
 
         <ImageView
             android:id="@+id/iv5"
             android:layout_width="60dp"
             android:layout_height="60dp"
-            android:src="@drawable/example"
-            android:scaleType="centerCrop" />
+            android:scaleType="centerCrop"
+            android:src="@drawable/example" />
 
         <ImageView
             android:id="@+id/iv6"
             android:layout_width="60dp"
             android:layout_height="60dp"
-            android:src="@drawable/example"
-            android:scaleType="centerCrop" />
+            android:scaleType="centerCrop"
+            android:src="@drawable/example" />
     </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="#ffffff"
+        android:text="哈哈哈哈哈"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:translationZ="6dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
