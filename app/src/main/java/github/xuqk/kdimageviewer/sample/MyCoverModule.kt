@@ -6,6 +6,7 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.TextView
+import android.widget.Toast
 import github.xuqk.kdimageviewer.KDCoverModule
 
 /**
@@ -31,6 +32,12 @@ class MyCoverModule(private val activity: Activity): KDCoverModule(activity) {
     override fun getCoverView(): View? {
         if (coverView == null) {
             coverView = LayoutInflater.from(activity).inflate(R.layout.app_widget_cover, null)
+            coverView!!.findViewById<View>(R.id.tv_download).setOnClickListener {
+                Toast.makeText(activity, "你就当我下载了吧", Toast.LENGTH_SHORT).show()
+            }
+            coverView!!.findViewById<View>(R.id.tv_click).setOnClickListener {
+                Toast.makeText(activity, "点击", Toast.LENGTH_SHORT).show()
+            }
         }
         return coverView!!
     }

@@ -25,49 +25,83 @@ import github.xuqk.kdimageviewer.photoview.PhotoView
  * Created Date：1/24/20 4:52 PM
  * Creator Email：xuqiankun66@gmail.com
  * Description：
- *
- * @param animDuration 动画时长
- * @param defaultBgColor 大图模式的背景色
- * @param coverModule 蒙层模块
- * @param onAnimateListener 动画起始结束监听
  */
-class KDImageViewer(
-    context: Context,
-    private val imageLoader: ImageLoader,
-    private val animDuration: Long = 300L,
-    @ColorInt private val defaultBgColor: Int = Color.BLACK,
-    val coverModule: KDCoverModule? = null,
-    var onAnimateListener: OnAnimateListener? = null
-) : OnDragChangeListener {
+class KDImageViewer : OnDragChangeListener {
 
-    private val containerView: ViewGroup = FrameLayout(context)
-    private val photoViewContainer = PhotoViewContainer(context)
-    private val pager = ViewPager(context)
-    private val snapshotView = PhotoView(context)
+    var context: Context? = null
+    var imageLoader: ImageLoader? = null
+    /**动画时长*/
+    var animDuration: Long = 300L
+    /**大图模式的背景色*/
+    @ColorInt val defaultBgColor: Int = Color.BLACK
+    /**蒙层模块*/
+    var coverModule: KDCoverModule? = null
+
+    /**进入大图模式动画开始*/
+    var onShowAnimateStart: (() -> Unit)? = null
+    /**进入大图模式动画结束*/
+    var onShowAnimateEnd: (() -> Unit)? = null
+    /**退出大图模式动画开始*/
+    var onDismissAnimateStart: (() -> Unit)? = null
+    /**退出大图模式动画结束*/
+    var onDismissAnimateEnd: (() -> Unit)? = null
+
+    /**
+     * 根据position获取当前大图对应的小图ImageView，如果要实现完美效果，必须实现它
+     */
+    var srcImageViewFetcher: (position: Int) -> ImageView? = { null }
+
+    var onPageScrolled: ((position: Int, positionOffset: Float, positionOffsetPixels: Int) -> Unit)? = null
+    var onPageSelected: ((position: Int) -> Unit)? = null
+    var onPageScrollStateChanged: ((state: Int) -> Unit)? = null
+
+    private lateinit var containerView: ViewGroup
+    private lateinit var photoViewContainer: PhotoViewContainer
+    private lateinit var pager: ViewPager
+    private lateinit var snapshotView: PhotoView
 
     private val originUrlList = mutableListOf<String?>()
 
     private var argbEvaluator: ArgbEvaluator = ArgbEvaluator()
 
+    val currentPosition: Int
+        get() = pager.currentItem
+
     /**当前展示状态*/
     var showing: Boolean = false
         private set
 
-    var pageChangeListener: ViewPager.OnPageChangeListener? = null
-        set(value) {
-            if (field != null) {
-                pager.removeOnPageChangeListener(field!!)
-            }
-
-            field = value
-            if (field != null) {
-                pager.addOnPageChangeListener(field!!)
-            }
+    fun init() {
+        require(context != null) {
+            "context can't be null"
+        }
+        require(imageLoader != null) {
+            "imageLoader can't be null"
         }
 
-    var srcImageViewFetcher: SrcImageViewFetcher = SrcImageViewFetcher()
+        containerView = FrameLayout(context!!)
+        photoViewContainer = PhotoViewContainer(context!!)
+        pager = ViewPager(context!!)
+        pager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
+            override fun onPageScrollStateChanged(state: Int) {
+                onPageScrollStateChanged?.invoke(state)
+            }
 
-    init {
+            override fun onPageScrolled(
+                position: Int,
+                positionOffset: Float,
+                positionOffsetPixels: Int
+            ) {
+                onPageScrolled?.invoke(position, positionOffset, positionOffsetPixels)
+            }
+
+            override fun onPageSelected(position: Int) {
+                onPageSelected?.invoke(position)
+            }
+        })
+
+        snapshotView = PhotoView(context!!)
+
         photoViewContainer.run {
             addView(pager, generateDefaultLayoutParams())
             addView(snapshotView, generateDefaultLayoutParams())
@@ -83,22 +117,20 @@ class KDImageViewer(
         }
     }
 
-    fun getCurrentPosition(): Int = pager.currentItem
-
     fun show(attachedView: ViewGroup, originUrlList: List<String?>, position: Int) {
         if (photoViewContainer.isAnimating) return
         showing = true
 
         this.originUrlList.clear()
         this.originUrlList.addAll(originUrlList)
-        pager.adapter = ImageViewerAdapter2()
+        pager.adapter = ImageViewerAdapter()
 
         pager.setCurrentItem(position, false)
 
         photoViewContainer.isAnimating = true
 
         // 将snapshotView设置成列表中的srcView的样子
-        val srcView = srcImageViewFetcher.getSrcImageView(position)
+        val srcView = srcImageViewFetcher.invoke(position)
         updateSrcViewParams(attachedView, srcView)
 
         containerView.setBackgroundColor(Color.TRANSPARENT)
@@ -123,7 +155,7 @@ class KDImageViewer(
         }
 
         snapshotView.post {
-            onAnimateListener?.onShowAnimateStart()
+            onShowAnimateStart?.invoke()
             TransitionManager.beginDelayedTransition(
                 snapshotView.parent as ViewGroup,
                 TransitionSet()
@@ -141,7 +173,7 @@ class KDImageViewer(
                             pager.scaleX = 1f
                             pager.scaleY = 1f
 
-                            onAnimateListener?.onShowAnimateEnd()
+                            onShowAnimateEnd?.invoke()
                         }
                     })
             )
@@ -168,11 +200,11 @@ class KDImageViewer(
         if (photoViewContainer.isAnimating) return
         photoViewContainer.isAnimating = true
 
-        val srcView = srcImageViewFetcher.getSrcImageView(getCurrentPosition())
+        val srcView = srcImageViewFetcher.invoke(currentPosition)
         updateSrcViewParams((containerView.parent as ViewGroup), srcView)
 
         // 将snapshotView设置成当前pager中photoView的样子(matrix)
-        (pager.adapter as ImageViewerAdapter2).currentPhotoView?.let {
+        (pager.adapter as ImageViewerAdapter).currentPhotoView?.let {
             snapshotView.run {
                 setImageDrawable(it.drawable)
 
@@ -186,7 +218,7 @@ class KDImageViewer(
         pager.visibility = View.INVISIBLE
         snapshotView.visibility = View.VISIBLE
 
-        onAnimateListener?.onDismissAnimateStart()
+        onDismissAnimateStart?.invoke()
         TransitionManager.beginDelayedTransition(
             snapshotView.parent as ViewGroup,
             TransitionSet()
@@ -200,8 +232,8 @@ class KDImageViewer(
                         photoViewContainer.isAnimating = false
                         (containerView.parent as? ViewGroup)?.removeView(containerView)
                         pager.visibility = View.INVISIBLE
-                        (pager.adapter as? ImageViewerAdapter2)?.currentPhotoView?.let {
-                            imageLoader.stopLoad(it)
+                        (pager.adapter as? ImageViewerAdapter)?.currentPhotoView?.let {
+                            imageLoader!!.stopLoad(it)
                         }
                         snapshotView.visibility = View.VISIBLE
                         pager.scaleX = 1f
@@ -209,7 +241,7 @@ class KDImageViewer(
                         snapshotView.scaleX = 1f
                         snapshotView.scaleY = 1f
 
-                        onAnimateListener?.onDismissAnimateEnd()
+                        onDismissAnimateEnd?.invoke()
                         reset()
                         showing = false
                     }
@@ -306,7 +338,7 @@ class KDImageViewer(
 
     private fun generateDefaultLayoutParams() = ViewGroup.MarginLayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
 
-    inner class ImageViewerAdapter2 : PagerAdapter() {
+    inner class ImageViewerAdapter : PagerAdapter() {
         private val onClickListener = View.OnClickListener { dismiss() }
         var currentPhotoView: PhotoView? = null
             private set
@@ -335,7 +367,7 @@ class KDImageViewer(
             }
 
             // 先加载已有缩略图
-            photoView.setImageDrawable(srcImageViewFetcher.getSrcImageView(position)?.drawable)
+            photoView.setImageDrawable(srcImageViewFetcher.invoke(position)?.drawable)
 
             // 再加载原图
             loadOriginImage(photoView, loadFailedView, loadingView, position)
@@ -361,7 +393,7 @@ class KDImageViewer(
             loadFailedView?.visibility = View.GONE
             loadingView?.visibility = View.VISIBLE
 
-            imageLoader.load(photoView, originUrlList[position], object :
+            imageLoader!!.load(photoView, originUrlList[position], object :
                 ImageLoader.ImageLoaderListener {
                 override fun onLoadFailed(errorDrawable: Drawable?) {
                     loadingView?.visibility = View.INVISIBLE
@@ -375,27 +407,11 @@ class KDImageViewer(
             })
         }
     }
-
-    /**
-     * 根据position获取srcView的工具，如果要实现完美效果，必须实现它
-     */
-    open class SrcImageViewFetcher {
-        open fun getSrcImageView(position: Int): ImageView? {
-            return null
-        }
-    }
 }
 
 interface OnDragChangeListener {
     fun onRelease()
     fun onDragChange(dy: Int, scale: Float, fraction: Float)
-}
-
-interface OnAnimateListener {
-    fun onShowAnimateStart()
-    fun onShowAnimateEnd()
-    fun onDismissAnimateStart()
-    fun onDismissAnimateEnd()
 }
 
 interface ImageLoader {

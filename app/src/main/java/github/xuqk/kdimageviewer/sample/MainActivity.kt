@@ -2,6 +2,7 @@ package github.xuqk.kdimageviewer.sample
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
@@ -9,16 +10,30 @@ import androidx.viewpager.widget.ViewPager
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.Target
 import github.xuqk.kdimageviewer.KDImageViewer
+import github.xuqk.kdimageviewer.kdImageViewer
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
     private val ivHelper: KDImageViewer by lazy {
-        KDImageViewer(
-            this,
-            imageLoader = KDImageViewLoader,
-            coverModule = MyCoverModule(this)
-        )
+        kdImageViewer {
+            context = this@MainActivity
+            imageLoader = KDImageViewLoader
+            animDuration = 400
+            coverModule = MyCoverModule(this@MainActivity)
+            onShowAnimateStart = {
+                Log.d("标签", "显示动画开始")
+            }
+            onShowAnimateEnd = {
+                Log.d("标签", "显示动画结束")
+            }
+            onDismissAnimateStart = {
+                Log.d("标签", "消失动画开始")
+            }
+            onDismissAnimateEnd = {
+                Log.d("标签", "消失动画结束")
+            }
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,31 +60,13 @@ class MainActivity : AppCompatActivity() {
 
         val views = listOf(iv0, iv1, iv2, iv3, iv4, iv5, iv6)
 
-        ivHelper.srcImageViewFetcher = object : KDImageViewer.SrcImageViewFetcher() {
-            override fun getSrcImageView(position: Int): ImageView? {
-                return null
-//                return views[position]
-            }
+        ivHelper.srcImageViewFetcher = {
+            views[it]
         }
 
-        ivHelper.pageChangeListener = object : ViewPager.OnPageChangeListener {
-            override fun onPageScrollStateChanged(state: Int) {
-
-            }
-
-            override fun onPageScrolled(
-                position: Int,
-                positionOffset: Float,
-                positionOffsetPixels: Int
-            ) {
-
-            }
-
-            override fun onPageSelected(position: Int) {
-                ivHelper.coverModule?.getCoverView()?.findViewById<TextView>(R.id.tv_index)
-                    ?.text = "${position + 1}/${originList.size}"
-            }
-
+        ivHelper.onPageSelected = {
+            ivHelper.coverModule?.getCoverView()?.findViewById<TextView>(R.id.tv_index)
+                ?.text = "${it + 1}/${originList.size}"
         }
 
         Glide.with(iv0)

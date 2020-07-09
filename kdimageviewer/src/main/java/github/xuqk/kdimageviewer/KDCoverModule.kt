@@ -1,6 +1,5 @@
 package github.xuqk.kdimageviewer
 
-import android.app.Activity
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
