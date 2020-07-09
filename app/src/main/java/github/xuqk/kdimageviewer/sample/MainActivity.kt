@@ -2,6 +2,7 @@ package github.xuqk.kdimageviewer.sample
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.viewpager.widget.ViewPager
@@ -14,7 +15,7 @@ class MainActivity : AppCompatActivity() {
 
     private val ivHelper: KDImageViewer by lazy {
         KDImageViewer(
-            attachedView = findViewById(R.id.root),
+            this,
             imageLoader = KDImageViewLoader,
             coverModule = MyCoverModule(this)
         )
@@ -46,7 +47,8 @@ class MainActivity : AppCompatActivity() {
 
         ivHelper.srcImageViewFetcher = object : KDImageViewer.SrcImageViewFetcher() {
             override fun getSrcImageView(position: Int): ImageView? {
-                return views[position]
+                return null
+//                return views[position]
             }
         }
 
@@ -75,7 +77,7 @@ class MainActivity : AppCompatActivity() {
             .override(Target.SIZE_ORIGINAL)
             .into(iv0)
         iv0.setOnClickListener {
-            ivHelper.show(originList, 0)
+            ivHelper.show(window.decorView as ViewGroup, originList, 0)
         }
 
         GlideApp.with(iv1)
@@ -83,7 +85,7 @@ class MainActivity : AppCompatActivity() {
             .override(Target.SIZE_ORIGINAL)
             .into(iv1)
         iv1.setOnClickListener {
-            ivHelper.show(originList, 1)
+            ivHelper.show(window.decorView as ViewGroup, originList, 1)
         }
 
         GlideApp.with(iv2)
@@ -91,7 +93,7 @@ class MainActivity : AppCompatActivity() {
             .override(Target.SIZE_ORIGINAL)
             .into(iv2)
         iv2.setOnClickListener {
-            ivHelper.show(originList, 2)
+            ivHelper.show(window.decorView as ViewGroup, originList, 2)
         }
 
         GlideApp.with(iv3)
@@ -99,7 +101,7 @@ class MainActivity : AppCompatActivity() {
             .override(Target.SIZE_ORIGINAL)
             .into(iv3)
         iv3.setOnClickListener {
-            ivHelper.show(originList, 3)
+            ivHelper.show(window.decorView as ViewGroup, originList, 3)
         }
 
         GlideApp.with(iv4)
@@ -107,7 +109,7 @@ class MainActivity : AppCompatActivity() {
             .override(Target.SIZE_ORIGINAL)
             .into(iv4)
         iv4.setOnClickListener {
-            ivHelper.show(originList, 4)
+            ivHelper.show(window.decorView as ViewGroup, originList, 4)
         }
 
         GlideApp.with(iv5)
@@ -115,7 +117,7 @@ class MainActivity : AppCompatActivity() {
             .override(Target.SIZE_ORIGINAL)
             .into(iv5)
         iv5.setOnClickListener {
-            ivHelper.show(originList, 5)
+            ivHelper.show(window.decorView as ViewGroup, originList, 5)
         }
 
         GlideApp.with(iv6)
@@ -123,7 +125,7 @@ class MainActivity : AppCompatActivity() {
             .override(Target.SIZE_ORIGINAL)
             .into(iv6)
         iv6.setOnClickListener {
-            ivHelper.show(originList, 6)
+            ivHelper.show(window.decorView as ViewGroup, originList, 6)
         }
 
     }

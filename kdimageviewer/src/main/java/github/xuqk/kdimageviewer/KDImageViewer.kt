@@ -262,7 +262,9 @@ class KDImageViewer(
      */
     private fun updateSrcViewParams(attachedView: ViewGroup, srcView: ImageView?) {
         if (srcView == null) {
-            rect.set(0f, 0f, 0f, 0f)
+            val x = (containerView.width / 2 + containerView.left).toFloat()
+            val y = (containerView.height / 2 + containerView.top).toFloat()
+            rect.set(x, y, x, y)
         } else {
             attachedView.getLocationOnScreen(currentOriginViewLocation)
             val containerX = currentOriginViewLocation[0]
