@@ -151,7 +151,7 @@ class KDImageViewer : OnDragChangeListener {
                 height = rect.height().toInt()
             }
 
-            setImageDrawable(srcView?.drawable)
+            setImageDrawable(srcView?.drawable?.constantState?.newDrawable())
         }
 
         snapshotView.post {
@@ -365,9 +365,6 @@ class KDImageViewer : OnDragChangeListener {
             loadFailedView?.setOnClickListener {
                 loadOriginImage(photoView, loadFailedView, loadingView, position)
             }
-
-            // 先加载已有缩略图
-            photoView.setImageDrawable(srcImageViewFetcher.invoke(position)?.drawable)
 
             // 再加载原图
             loadOriginImage(photoView, loadFailedView, loadingView, position)
