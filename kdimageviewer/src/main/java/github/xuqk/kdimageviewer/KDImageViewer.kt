@@ -10,6 +10,7 @@ import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewParent
 import android.view.animation.LinearInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -135,6 +136,7 @@ class KDImageViewer : OnDragChangeListener {
 
         containerView.setBackgroundColor(Color.TRANSPARENT)
 
+        (containerView.parent as? ViewGroup)?.removeView(containerView)
         attachedView.addView(containerView, generateDefaultLayoutParams())
         pager.visibility = View.INVISIBLE
 
